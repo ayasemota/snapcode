@@ -67,8 +67,8 @@ export default function Home() {
       qrContainerRef.current.innerHTML = '';
       const canvas = document.createElement('canvas');
       qrContainerRef.current.appendChild(canvas);
-      const qr = new window.QRious({ element: canvas, value: text, size: 300, background: 'white', foreground: 'black', level: 'M' });
-      canvas.className = 'w-full h-auto rounded-xl shadow-lg bg-white';
+      const qr = new window.QRious({ element: canvas, value: text, size: 300, background: 'transparent', foreground: 'black', level: 'M' });
+      canvas.className = 'w-full h-auto rounded-xl';
       canvas.style.maxWidth = '300px';
       canvas.style.height = 'auto';
     } catch (error) {
@@ -83,7 +83,7 @@ export default function Home() {
     const encodedData = encodeURIComponent(text);
     img.src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodedData}&choe=UTF-8`;
     img.alt = 'Generated QR Code';
-    img.className = 'w-full h-auto rounded-xl shadow-lg bg-white p-4';
+    img.className = 'w-full h-auto rounded-xl p-4';
     img.style.maxWidth = '300px';
     img.style.height = 'auto';
     img.onerror = (): void => { img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedData}&format=png&margin=10`; };
