@@ -1,5 +1,6 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import { Upload as UploadIcon, Image as ImageIcon } from "lucide-react";
+import jsQR from "jsqr";
 
 interface UploadProps {
   setQrData: Dispatch<SetStateAction<string>>;
@@ -26,39 +27,46 @@ export default function Upload({ setQrData }: UploadProps) {
       const imageUrl = e.target?.result as string;
 
       try {
-        const formData = new FormData();
-        formData.append("file", file);
+        const img = new Image();
+        img.src = imageUrl;
 
-        const response = await fetch(
-          "https://api.qrserver.com/v1/read-qr-code/",
-          {
-            method: "POST",
-            body: formData,
+        img.onload = (): void => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            setError("Failed to process image");
+            setDecoding(false);
+            return;
           }
-        );
 
-        const data = await response.json();
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
 
-        if (
-          data &&
-          data[0] &&
-          data[0].symbol &&
-          data[0].symbol[0] &&
-          data[0].symbol[0].data
-        ) {
-          setQrData(data[0].symbol[0].data);
-          setUploadedImage(imageUrl);
-          setError("");
-        } else {
-          setError("No QR code found in image");
-          setQrData("");
-          setUploadedImage(imageUrl);
-        }
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+          if (code) {
+            setQrData(code.data);
+            setUploadedImage(imageUrl);
+            setError("");
+          } else {
+            setError("No QR code found in image");
+            setQrData("");
+            setUploadedImage(imageUrl);
+          }
+          setDecoding(false);
+        };
+
+        img.onerror = (): void => {
+          setError("Failed to load image");
+          setDecoding(false);
+        };
       } catch {
         setError("Failed to decode QR code. Please try another image.");
         setQrData("");
         setUploadedImage(imageUrl);
-      } finally {
         setDecoding(false);
       }
     };
@@ -124,7 +132,7 @@ export default function Upload({ setQrData }: UploadProps) {
           <p className="text-gray-700 font-medium mb-2 group-hover:text-purple-600 transition-colors duration-200">
             {uploadedImage ? "Image Uploaded" : "Upload QR Code Image"}
           </p>
-          <p className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
+          <p className="hidden lg:flex text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
             Drag and drop or click to browse
           </p>
           <p className="text-xs text-gray-400 mt-2 animate-in fade-in duration-300 delay-100">

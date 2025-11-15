@@ -1,12 +1,12 @@
 {
   "name": "SnapCode - QR Code Generator",
   "short_name": "SnapCode",
-  "description": "Generate QR codes for URLs, text, and contact information instantly",
+  "description": "Generate QR codes for URLs, text, and contact information instantly. Works offline!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#9333ea",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/icon-192x192.png",
