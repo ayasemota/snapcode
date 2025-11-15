@@ -132,7 +132,7 @@ export default function Upload({ setQrData }: UploadProps) {
           <p className="text-gray-700 font-medium mb-2 group-hover:text-purple-600 transition-colors duration-200">
             {uploadedImage ? "Image Uploaded" : "Upload QR Code Image"}
           </p>
-          <p className="hidden lg:flex text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
+          <p className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
             Drag and drop or click to browse
           </p>
           <p className="text-xs text-gray-400 mt-2 animate-in fade-in duration-300 delay-100">
