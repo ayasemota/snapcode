@@ -12,8 +12,8 @@ export default function Text({ setQrData }: TextProps) {
   }, [textInput, setQrData]);
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="animate-in fade-in slide-in-from-left duration-300">
+      <label className="block text-sm font-medium text-gray-700 mb-2 transition-colors duration-200 hover:text-purple-600">
         Text Content
       </label>
       <textarea
@@ -23,7 +23,7 @@ export default function Text({ setQrData }: TextProps) {
         }
         placeholder="Enter any text to generate QR code..."
         rows={4}
-        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent hover:border-purple-300 transition-all duration-200 resize-none shadow-sm hover:shadow-md"
       />
     </div>
   );
