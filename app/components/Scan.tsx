@@ -1,16 +1,15 @@
 import { useState, useRef, useEffect, Dispatch, SetStateAction } from "react";
 import { Upload, Camera, X } from "lucide-react";
-import jsQR from "jsqr";
 
 interface ScanProps {
   setQrData: Dispatch<SetStateAction<string>>;
 }
 
 export default function Scan({ setQrData }: ScanProps) {
-  const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState("");
-  const [cameraActive, setCameraActive] = useState(false);
-  const [scannedResult, setScannedResult] = useState("");
+  const [scanning, setScanning] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const [scannedResult, setScannedResult] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,10 +17,12 @@ export default function Scan({ setQrData }: ScanProps) {
   const scanIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    return () => stopCamera();
+    return () => {
+      stopCamera();
+    };
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = async (): Promise<void> => {
     setError("");
     setScannedResult("");
     try {
@@ -39,12 +40,12 @@ export default function Scan({ setQrData }: ScanProps) {
         setCameraActive(true);
         startScanning();
       }
-    } catch {
+    } catch (err) {
       setError("Unable to access camera. Please check permissions.");
     }
   };
 
-  const stopCamera = () => {
+  const stopCamera = (): void => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -56,16 +57,19 @@ export default function Scan({ setQrData }: ScanProps) {
     setCameraActive(false);
   };
 
-  const startScanning = () => {
-    scanIntervalRef.current = window.setInterval(() => scanFromCamera(), 300);
+  const startScanning = (): void => {
+    scanIntervalRef.current = window.setInterval(() => {
+      scanFromCamera();
+    }, 300);
   };
 
-  const scanFromCamera = async () => {
+  const scanFromCamera = async (): Promise<void> => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
+
     if (!ctx || video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
     canvas.width = video.videoWidth;
@@ -82,7 +86,9 @@ export default function Scan({ setQrData }: ScanProps) {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -100,7 +106,7 @@ export default function Scan({ setQrData }: ScanProps) {
         setError("No QR code found in the image");
         setQrData("");
       }
-    } catch {
+    } catch (err) {
       setError("Failed to scan QR code. Please try another image.");
       setQrData("");
     } finally {
@@ -108,39 +114,71 @@ export default function Scan({ setQrData }: ScanProps) {
     }
   };
 
-  const scanQRCode = async (imageUrl: string) => {
-    return new Promise<string | null>((resolve) => {
+  const scanQRCode = async (imageUrl: string): Promise<string | null> => {
+    return new Promise((resolve) => {
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(null);
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
 
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        resolve(code ? code.data : null);
+        const result = await detectQRCode(imageData);
+        resolve(result);
       };
       img.onerror = () => resolve(null);
       img.src = imageUrl;
     });
   };
 
-  const detectQRCode = async (imageData: ImageData) => {
+  const detectQRCode = async (imageData: ImageData): Promise<string | null> => {
     if (window.BarcodeDetector) {
       try {
-        const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
-        const barcodes = await detector.detect(imageData);
-        if (barcodes.length > 0) return barcodes[0].rawValue;
-      } catch {
-        console.error("BarcodeDetector error");
+        const barcodeDetector = new window.BarcodeDetector({
+          formats: ["qr_code"],
+        });
+        const barcodes = await barcodeDetector.detect(imageData);
+        if (barcodes.length > 0) {
+          return barcodes[0].rawValue;
+        }
+      } catch (err) {
+        console.error("BarcodeDetector error:", err);
       }
     }
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-    return code ? code.data : null;
+
+    await loadJsQRLibrary();
+    if (!window.jsQR) return null;
+
+    try {
+      const code = window.jsQR(
+        imageData.data,
+        imageData.width,
+        imageData.height
+      );
+      return code ? code.data : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const loadJsQRLibrary = (): Promise<void> => {
+    return new Promise((resolve) => {
+      if (window.jsQR) {
+        resolve();
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
+      script.onload = () => resolve();
+      document.head.appendChild(script);
+    });
   };
 
   return (
@@ -188,6 +226,7 @@ export default function Scan({ setQrData }: ScanProps) {
               </div>
             </div>
           </div>
+
           {scannedResult && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <p className="text-sm text-green-800 font-medium mb-2">
@@ -227,11 +266,13 @@ export default function Scan({ setQrData }: ScanProps) {
           </div>
         </div>
       )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
+
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <p className="text-sm text-blue-800">
           <strong>Tip:</strong> For best results, ensure the QR code is clearly
@@ -245,6 +286,11 @@ export default function Scan({ setQrData }: ScanProps) {
 declare global {
   interface Window {
     BarcodeDetector: BarcodeDetectorConstructor;
+    jsQR?: (
+      data: Uint8ClampedArray,
+      width: number,
+      height: number
+    ) => QRCode | null;
   }
 }
 
@@ -258,4 +304,8 @@ interface BarcodeDetectorInstance {
 
 interface DetectedBarcode {
   rawValue: string;
+}
+
+interface QRCode {
+  data: string;
 }
