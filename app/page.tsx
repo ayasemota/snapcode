@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import Url from "./components/Url";
 import Text from "./components/Text";
 import Contact from "./components/Contact";
+import Scan from "./components/Scan";
 import {
   QrCode,
   Link,
@@ -14,6 +15,7 @@ import {
   Copy,
   Check,
   LucideIcon,
+  ScanLine,
 } from "lucide-react";
 
 interface Tab {
@@ -81,7 +83,7 @@ export default function Home() {
         element: canvas,
         value: text,
         size: 300,
-        background: "transparent",
+        background: "white",
         foreground: "black",
         level: "M",
       });
@@ -100,7 +102,7 @@ export default function Home() {
     const encodedData = encodeURIComponent(text);
     img.src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodedData}&choe=UTF-8`;
     img.alt = "Generated QR Code";
-    img.className = "w-full h-auto rounded-xl p-4";
+    img.className = "w-full h-auto bg-white rounded-xl p-4";
     img.style.maxWidth = "800px";
     img.style.height = "auto";
     img.onerror = (): void => {
@@ -146,6 +148,7 @@ export default function Home() {
     { id: "url", label: "URL", icon: Link },
     { id: "text", label: "Text", icon: MessageSquare },
     { id: "contact", label: "Contact", icon: User },
+    { id: "scan", label: "Scan", icon: ScanLine },
   ];
 
   return (
@@ -194,11 +197,13 @@ export default function Home() {
                     {activeTab === "url" && "Enter URL"}
                     {activeTab === "text" && "Enter Text"}
                     {activeTab === "contact" && "Contact Information"}
+                    {activeTab === "scan" && "Scan QR Code"}
                   </h2>
 
                   {activeTab === "url" && <Url setQrData={setQrData} />}
                   {activeTab === "text" && <Text setQrData={setQrData} />}
                   {activeTab === "contact" && <Contact setQrData={setQrData} />}
+                  {activeTab === "scan" && <Scan setQrData={setQrData} />}
                 </div>
 
                 <div className="flex flex-col items-center space-y-6">
