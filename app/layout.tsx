@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
 import "./globals.css";
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-roboto",
-});
 
 export const metadata: Metadata = {
   title: "SnapCode - QR Code Generator",
   description:
     "Generate QR codes for URLs, text, and contact information instantly",
+  manifest: "/manifest.json",
+  themeColor: "#9333ea",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SnapCode",
+  },
 };
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} font-sans`}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
